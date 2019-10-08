@@ -320,7 +320,16 @@ public class Main {
         		if(!StringUtils.isNullOrEmpty(mFirstName.getText()) && !StringUtils.isNullOrEmpty(mSurname.getText()) 
         				&& !StringUtils.isNullOrEmpty(mSalary.getText()) && mGender.getSelectedItem() != "NONE"
         				&& !StringUtils.isNullOrEmpty(mSSN.getText()) && !StringUtils.isNullOrEmpty(mDOB.getText())) {
+        			if(mDOB.getText().matches("\\d{4}-\\d{2}-\\d{2}") && mSSN.getText().matches("[0-9]+")) {
         				addUser(mErrorText,mFirstName,mSurname,mSSN,mDOB,mSalary,mGender);
+        				mErrorText.setText("");
+        			}else {
+        				if(!mSSN.getText().matches("[0-9]+")) {
+        					mErrorText.setText("SSN should only contain Integers  ");
+        				}else {
+        					mErrorText.setText("Invalid Format should be YYYY-MM-DD");
+        				}
+        			}
         		}else {
         			mErrorText.setText("Please fill in the text fields");
         		}

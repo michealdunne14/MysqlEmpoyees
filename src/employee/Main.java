@@ -48,7 +48,7 @@ public class Main {
     
     JTextField mFirstName,mSSN,mSurname,mSalary,mDOB,mSearchField,mUpdateField; 
     
-    JLabel mErrorText,mFirstNameLabel,mSSNLabel,mSurnameLabel,mSalaryLabel,mGenderLabel,mDOBLabel,mSearchFieldLabel,mUpdateFieldLabel;
+    JLabel mErrorText,mFirstNameLabel,mSSNLabel,mSurnameLabel,mSalaryLabel,mGenderLabel,mDOBLabel,mSearchFieldLabel,mUpdateFieldLabel,mErrorTextUpdate;
     
     ResultSet resultset = null;
     
@@ -156,9 +156,10 @@ public class Main {
     	String selectedModel = mExecuteDropdown.getSelectedItem().toString();
 		String selectedUpdate = mUpdateDropdown.getSelectedItem().toString();
 		String replacedstring =  mSearchDropdown.getSelectedItem().toString();
-		System.out.println(replacedstring);
+		
 		Connection conn = getConnection();
 		PreparedStatement preparedStmt = null;
+		
 		if(selectedModel.toUpperCase().equals("UPDATE")) {
 			
 			preparedStmt = conn.prepareStatement("UPDATE user SET " + selectedUpdate + "=? WHERE "+replacedstring+"=?");
@@ -183,15 +184,21 @@ public class Main {
 				mErrorText.setText("Search a user");
 			}
 			else {
-				System.out.println("Execute update rows");
-				preparedStmt.executeUpdate();
-			if(selectedModel.toUpperCase().equals("DELETE")) {
-				mErrorText.setText("Deleted a user");
-			}else {
-				mErrorText.setText("Updated a user");
+				if(selectedModel.toUpperCase().equals("UPDATE") && selectedUpdate.toUpperCase().equals("DOB") && !mUpdateField.getText().matches("\\d{4}-\\d{2}-\\d{2}")) {
+					mErrorTextUpdate.setText("Format only avilable like YYYY-MM-DD");
+				}else if(selectedModel.toUpperCase().equals("UPDATE") && selectedUpdate.toUpperCase().equals("GENDER") && (!mUpdateField.getText().toUpperCase().matches("MALE") && !mUpdateField.getText().toUpperCase().matches("FEMALE") && !mUpdateField.getText().toUpperCase().matches("OTHER"))) {
+						mErrorTextUpdate.setText("Please use either male, female or other");
+				}else {
+					preparedStmt.executeUpdate();
+					if(selectedModel.toUpperCase().equals("DELETE")) {
+						mErrorText.setText("Deleted a user");
+					}else {
+						mErrorText.setText("Updated a user");
+						mErrorTextUpdate.setText("Updated");
+					}
+				}
 			}
-		}
-    }
+   }
 
     private void ListData(PreparedStatement preparedStmt) throws SQLException {
     	resultset = preparedStmt.executeQuery();
@@ -290,6 +297,9 @@ public class Main {
         
         mNext = new JButton("Next");
         mNext.setBounds(260,250, 100,30);
+        
+        mErrorTextUpdate = new JLabel();
+        mErrorTextUpdate.setBounds(160,450, 300,70);
         
         Statement stmt = null;
 		try {
@@ -411,6 +421,7 @@ public class Main {
         frame.add(mSearchDropdown);
         frame.add(mPrevious);
         frame.add(mNext);
+        frame.add(mErrorTextUpdate);
         
         
         frame.add(mFirstNameLabel);

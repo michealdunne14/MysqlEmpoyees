@@ -21,41 +21,41 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SpinnerDateModel;
 
-import com.mysql.jdbc.StringUtils;
+import com.mysql.cj.util.StringUtils;
 
-import javafx.scene.control.Accordion;
-import javafx.scene.control.Label;
-import javafx.scene.control.TitledPane;
 
 public class Main {
-    private JFrame frame;
     
+//	User name
 	private final String userName = "root";
-	
+//	password
 	private final String password = "";
-
+//	server name
 	private final String serverName = "localhost";
-	
+//	port number
 	private final int portNumber = 3306;
-
-	private final String dbName = "test";
-	
+//	database name
+	private final String dbName = "test?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=GMT";
+//	table name
 	private final String tableName = "USER";
-	
+//	JFrame
+	private JFrame frame;
+//	Buttons
     JButton mAdd,mClear,mExecute,mPrevious,mNext;
-    
+//  Combobox(Dropdown list)
     JComboBox<String> mExecuteDropdown,mUpdateDropdown,mGender,mSearchDropdown;
-    
+//  Text Fields
     JTextField mFirstName,mSSN,mSurname,mSalary,mDOB,mSearchField,mUpdateField; 
-    
+//  Labels
     JLabel mErrorText,mFirstNameLabel,mSSNLabel,mSurnameLabel,mSalaryLabel,mGenderLabel,mDOBLabel,mSearchFieldLabel,mUpdateFieldLabel,mErrorTextUpdate;
-    
+//  SQL Result sets  
     ResultSet resultset = null;
     
 //  Main
     public static void main(String[] args) {
         try {
         	Main window = new Main();
+//        	Show Frame
             window.frame.setVisible(true);
         } catch (Exception e) {
             e.printStackTrace();
@@ -88,6 +88,7 @@ public class Main {
 		try {
 			connection = getConnection();
 			s = connection.createStatement();
+//			Preparted statement and adding fields to the SQL statement
 			PreparedStatement preparedStmt = connection.prepareStatement("INSERT INTO USER (FIRSTNAME,SURNAME, SALARY,GENDER,SSN,DOB) VALUES (?,?,?,?,?,?)");
 			preparedStmt.setString(1, mFirstName.getText());
 			preparedStmt.setString(2, mSurname.getText());
@@ -98,12 +99,14 @@ public class Main {
 
 			preparedStmt.executeUpdate();
 			System.out.println("Inserted new User");
+//			Closes Statement
 			s.close();
 		} catch (SQLException e) {
+//			Error managing 
 			if(e.getMessage().contains("Duplicate entry")) {
-				mErrorText.setText(e.getMessage());
+				mErrorText.setText("SSN must be unique");
 			}else if(e.getMessage().contains("Incorrect integer value")){
-				mErrorText.setText("SSN can only contain Integers");
+				mErrorText.setText("Incorrect Isnteger value");
 			}else if(e.getMessage().contains("Incorrect date value:")) {
 				mErrorText.setText("Format only avilable like YYYY-MM-DD");
 			}
@@ -161,33 +164,37 @@ public class Main {
 		PreparedStatement preparedStmt = null;
 		
 		if(selectedModel.toUpperCase().equals("UPDATE")) {
-			
+//			Prepared statement updates
 			preparedStmt = conn.prepareStatement("UPDATE user SET " + selectedUpdate + "=? WHERE "+replacedstring+"=?");
+//			Sets the prepared statement fields
 			preparedStmt.setString(1, mUpdateField.getText());
 			preparedStmt.setString(2, mSearchField.getText());
 			System.out.println("Updating a user");
 		
 		}else if(selectedModel.toUpperCase().equals("DELETE")) {
-			
+//			Deletes a using prepared statement 
 			preparedStmt = conn.prepareStatement("DELETE FROM user WHERE "+replacedstring+"=?");
 			preparedStmt.setString(1,mSearchField.getText());
 			System.out.println("Deleting a user");
 			
 		}else if(selectedModel.toUpperCase().equals("SEARCH")) {
-
+//			Search a using prepared statement
 			preparedStmt = conn.prepareStatement("SELECT * FROM user WHERE "+ replacedstring+"=?");
 			preparedStmt.setString(1, mSearchField.getText());
 			
 		}
+//		If selected model is search then it will list all the data
 			if(selectedModel.toUpperCase().equals("SEARCH")) {
-				ListData(preparedStmt);
+				ListDataSearch(preparedStmt);
 				mErrorText.setText("Search a user");
 			}
 			else {
+//				Check to make sure it is the right format before requesting to the database.
 				if(selectedModel.toUpperCase().equals("UPDATE") && selectedUpdate.toUpperCase().equals("DOB") && !mUpdateField.getText().matches("\\d{4}-\\d{2}-\\d{2}")) {
 					mErrorTextUpdate.setText("Format only avilable like YYYY-MM-DD");
+//				Allows only the use of male female or other for genders
 				}else if(selectedModel.toUpperCase().equals("UPDATE") && selectedUpdate.toUpperCase().equals("GENDER") && (!mUpdateField.getText().toUpperCase().matches("MALE") && !mUpdateField.getText().toUpperCase().matches("FEMALE") && !mUpdateField.getText().toUpperCase().matches("OTHER"))) {
-						mErrorTextUpdate.setText("Please use either male, female or other");
+					mErrorTextUpdate.setText("Please use either male, female or other");
 				}else {
 					preparedStmt.executeUpdate();
 					if(selectedModel.toUpperCase().equals("DELETE")) {
@@ -199,8 +206,8 @@ public class Main {
 				}
 			}
    }
-
-    private void ListData(PreparedStatement preparedStmt) throws SQLException {
+//	List all the searching values
+	private void ListDataSearch(PreparedStatement preparedStmt) throws SQLException {
     	resultset = preparedStmt.executeQuery();
     	while(resultset.next()) {
     	String firstname = resultset.getString("FIRSTNAME");
@@ -216,11 +223,9 @@ public class Main {
 		mGender.setSelectedItem(gender);
 		mSSN.setText(ssn);
 		mDOB.setText(dob);
-		
-		System.out.println("Changed search values");
     	}
 	}
-
+//	GUI
 	private void initialize() {
         frame = new JFrame();
         
@@ -332,7 +337,6 @@ public class Main {
         				&& !StringUtils.isNullOrEmpty(mSSN.getText()) && !StringUtils.isNullOrEmpty(mDOB.getText())) {
         			if(mDOB.getText().matches("\\d{4}-\\d{2}-\\d{2}") && mSSN.getText().matches("[0-9]+")) {
         				addUser(mErrorText,mFirstName,mSurname,mSSN,mDOB,mSalary,mGender);
-        				mErrorText.setText("");
         			}else {
         				if(!mSSN.getText().matches("[0-9]+")) {
         					mErrorText.setText("SSN should only contain Integers  ");
@@ -403,7 +407,7 @@ public class Main {
             }
           });
       
-        
+//      Adding items to the frame
         frame.add(mFirstName); 
         frame.add(mSurname);  
         frame.add(mSSN);
